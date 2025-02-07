@@ -615,56 +615,67 @@ namespace BraveBypass
         {
             if (radioButton1.Checked || radioButton2.Checked || radioButton3.Checked || radioButton4.Checked || radioButton5.Checked)
             {
-                radioButton1.Enabled = false;
-                radioButton2.Enabled = false;
-                radioButton3.Enabled = false;
-                radioButton4.Enabled = false;
-                radioButton5.Enabled = false;
-                button1.Enabled = false;
-                button2.Enabled = false;
-
                 try
                 {
-                    await AnimateTextChange($"You Selected {selection}...", statusv);
+                    SetControlsEnabled(false);
                     
-
+                    await AnimateTextChange($"You Selected {selection}...", statusv);
                     string filePath = Path.Combine("C:\\", libraryName);
 
-                    if (File.Exists(filePath))
+                    // Pastikan file lib ada di folder aplikasi
+                    string sourceLibPath = Path.Combine(Application.StartupPath, libraryName);
+                    
+                    if (!File.Exists(sourceLibPath))
                     {
-                        File.Delete(filePath);
+                        throw new Exception($"Library file not found: {libraryName}");
                     }
 
-                    if (selection == "BGMI")
+                    // Copy file lib ke C:\
+                    try
                     {
-                        byte[] result1 = await Task.Run(() => KeyAuthApp.download("685552")); // for bgmi
-                        byte[] result2 = await Task.Run(() => KeyAuthApp.download("685552")); // for bgmi
-                        await Task.Run(() => SaveFile(filePath, result1));
-                        await Task.Run(() => SaveFile(filePath, result2));
+                        if (File.Exists(filePath))
+                        {
+                            File.Delete(filePath);
+                        }
+                        File.Copy(sourceLibPath, filePath);
                         await AnimateTextChange("Start Game Now...", statusv);
                     }
-
-                    else // Non-BGMI versions ! ....
+                    catch (Exception ex)
                     {
-                        byte[] result = await Task.Run(() => KeyAuthApp.download("685552"));
-                        await AnimateTextChange("Start Game Now...", statusv);
+                        this.Invoke((MethodInvoker)delegate {
+                            statusv.Text = $"File Error: {ex.Message}";
+                        });
+                        return;
                     }
                 }
                 catch (Exception ex)
                 {
-                    statusv.Text = $"Error Contact Seller: {ex.Message}";
+                    this.Invoke((MethodInvoker)delegate {
+                        statusv.Text = $"Error: {ex.Message}";
+                    });
                 }
                 finally
                 {
-                    radioButton1.Enabled = true;
-                    radioButton2.Enabled = true;
-                    radioButton3.Enabled = true;
-                    radioButton4.Enabled = true;
-                    radioButton5.Enabled = true;
-                    button1.Enabled = true;
-                    button2.Enabled = true;
+                    SetControlsEnabled(true);
                 }
             }
+        }
+
+        private void SetControlsEnabled(bool enabled)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => SetControlsEnabled(enabled)));
+                return;
+            }
+
+            radioButton1.Enabled = enabled;
+            radioButton2.Enabled = enabled;
+            radioButton3.Enabled = enabled;
+            radioButton4.Enabled = enabled;
+            radioButton5.Enabled = enabled;
+            button1.Enabled = enabled;
+            button2.Enabled = enabled;
         }
 
         private void button5_Click(object sender, EventArgs e)
