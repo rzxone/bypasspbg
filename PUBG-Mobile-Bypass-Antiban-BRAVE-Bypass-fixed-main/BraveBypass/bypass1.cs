@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -536,7 +536,9 @@ namespace BraveBypass
                 }
                 else
                 {
-                    statusv.Text = "Error Contact Seller";
+                    this.Invoke((MethodInvoker)delegate {
+                        statusv.Text = "Error Contact Seller";
+                    });
                 }
             });
         }
